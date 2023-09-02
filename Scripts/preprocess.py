@@ -26,7 +26,7 @@ def PreprocessData():
     data['offset_standardized'] = scale.fit_transform(np.array(data['offset']).reshape(-1,1))
     data.drop(['offset'], axis=1, inplace=True)
 
-    data.to_csv("Data/processed_metadata.csv")
+    data.to_csv("Data/Preprocessed/processed_metadata.csv")
 
 if __name__ == '__main__':
     PreprocessData()
