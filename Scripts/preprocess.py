@@ -1,8 +1,20 @@
+"""
+Data preprocessing script for medical metadata.
+
+This script reads cleaned data from 'cleaned_metadata.csv', performs preprocessing operations, 
+and saves the processed data to 'processed_metadata.csv'.
+
+Dependencies: pandas, numpy, scikit-learn (StandardScaler)
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 def PreprocessData():
+    """
+    Perform preprocessing on medical metadata.
+    """
     data = pd.read_csv("Data/cleaned_metadata.csv")
     data.drop(['Unnamed: 0'], axis=1, inplace=True)
     
@@ -26,7 +38,7 @@ def PreprocessData():
     data['offset_standardized'] = scale.fit_transform(np.array(data['offset']).reshape(-1,1))
     data.drop(['offset'], axis=1, inplace=True)
 
-    data.to_csv("Data/Preprocessed/processed_metadata.csv")
+    data.to_csv("Data/processed_metadata.csv")
 
 if __name__ == '__main__':
     PreprocessData()

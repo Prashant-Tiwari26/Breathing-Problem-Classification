@@ -1,7 +1,19 @@
+"""
+Script for cleaning and preprocessing metadata from a CSV file.
+
+This script reads data from 'metadata.csv', performs data cleaning operations, and
+saves the cleaned data to 'cleaned_metadata.csv'.
+
+Dependencies: pandas, numpy
+"""
+
 import pandas as pd
 import numpy as np
 
 def CleanData():
+    """
+    Read data from 'metadata.csv', clean it, and save the cleaned data to 'cleaned_metadata.csv'.
+    """
     data = pd.read_csv("Data/metadata.csv")
 
     finds_array = []
