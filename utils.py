@@ -1,7 +1,11 @@
 import os
 import torch
+import numpy as np
 import pandas as pd
 from PIL import Image
+import seaborn as sns
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose, ToTensor, CenterCrop, Normalize, Resize
 
@@ -12,7 +16,7 @@ transform = Compose([
     Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-class CustomDataset_CSVlabels(Dataset):
+class CustomDataset(Dataset):
     """
     CustomDataset_CSVlabels is a custom PyTorch dataset class for loading image data and labels
     from a CSV file.
@@ -79,3 +83,131 @@ class CustomDataset_CSVlabels(Dataset):
             image = self.transform(image)
 
         return (image, y_label)
+    
+def TrainLoop(
+    model,
+    optimizer:torch.optim.Optimizer,
+    criterion:torch.nn.Module,
+    train_dataloader:torch.utils.data.DataLoader,
+    test_dataloader:torch.utils.data.DataLoader,
+    val_dataloader:torch.utils.data.DataLoader=None,
+    num_epochs:int=20,
+    early_stopping_rounds:int=5,
+    device:str='cpu'
+):
+    """
+    TrainLoop is a function for training a PyTorch model using provided data loaders and settings.
+
+    Args:
+        model (torch.nn.Module): The PyTorch model to be trained.
+        optimizer (torch.optim.Optimizer): The optimizer used for updating model parameters during training.
+        criterion (torch.nn.Module): The loss function used for computing the training loss.
+        train_dataloader (torch.utils.data.DataLoader): DataLoader for training data.
+        test_dataloader (torch.utils.data.DataLoader): DataLoader for testing data.
+        val_dataloader (torch.utils.data.DataLoader, optional): DataLoader for validation data (default: None).
+        num_epochs (int, optional): The number of training epochs (default: 20).
+        early_stopping_rounds (int, optional): Number of epochs without improvement to trigger early stopping (default: 5).
+        device (str, optional): Device to run training on ('cpu' or 'cuda'). (default: 'cpu').
+
+    Returns:
+        None
+
+    This function trains a PyTorch model using the specified settings, including data loaders, optimization,
+    and loss function. It supports optional early stopping based on validation loss. After training,
+    it displays training, testing, and validation loss plots.
+
+    Example:
+        TrainLoop(
+            model=my_model,
+            optimizer=my_optimizer,
+            criterion=my_loss_function,
+            train_dataloader=train_loader,
+            test_dataloader=test_loader,
+            val_dataloader=val_loader,
+            num_epochs=10,
+            early_stopping_rounds=3,
+            device='cuda'
+        )
+    """
+    model.to(device)
+    best_val_loss = float('inf')
+    epochs_without_improvement = 0
+
+    total_train_loss = []
+    total_val_loss = []
+    total_test_loss = []
+
+    for epoch in tqdm(range(num_epochs)):
+        model.train()
+        print("\nEpoch {}\n----------".format(epoch))
+        train_loss = 0
+        for i, (batch, label) in enumerate(train_dataloader):
+            batch, label = batch.to(device), label.to(device)
+            optimizer.zero_grad()
+            outputs = model(batch)
+            loss = criterion(outputs, label.float())
+            train_loss += loss
+            loss.backward()
+            optimizer.step()
+            print("Loss for batch {} = {}".format(i, loss))
+
+        print("\nTraining Loss for epoch {} = {}\n".format(epoch, train_loss))
+        total_train_loss.append(train_loss)
+
+        if val_dataloader is not None:
+            model.eval()
+            validation_loss = 0
+            with torch.inference_mode():
+                for batch, label in val_dataloader:
+                    batch, label = batch.to(device), label.to(device)
+                    outputs = model(batch)
+                    loss = criterion(outputs, label.float())
+                    validation_loss += loss
+
+                if validation_loss < best_val_loss:
+                    best_val_loss = validation_loss
+                    epochs_without_improvement = 0
+                else:
+                    epochs_without_improvement += 1
+
+                print(f"Current Validation Loss = {validation_loss}")
+                print(f"Best Validation Loss = {best_val_loss}")
+                print(f"Epochs without Improvement = {epochs_without_improvement}")
+
+            if epochs_without_improvement >= early_stopping_rounds:
+                print("Early Stoppping Triggered")
+                break
+            total_val_loss.append(validation_loss)
+
+        model.eval()
+        test_loss = 0
+        with torch.inference_mode():
+            for batch, label in test_dataloader:
+                batch, label = batch.to(device), label.to(device)
+                outputs = model(batch)
+                loss = criterion(outputs, label.float())
+                test_loss += loss
+
+            print("\nTest Loss for epoch {} = {}\n".format(epoch, test_loss))
+        total_test_loss.append(test_loss)
+
+    total_train_loss = [item.cpu().detach().numpy() for item in total_train_loss]
+    total_test_loss = [item.cpu().detach().numpy() for item in total_test_loss]
+    total_val_loss = [item.cpu().detach().numpy() for item in total_val_loss]
+
+    total_train_loss = np.array(total_train_loss)
+    total_test_loss = np.array(total_test_loss)
+    total_val_loss = np.array(total_val_loss)
+
+    x_train = np.arange(len(total_train_loss))
+    x_test = np.arange(len(total_test_loss))
+    x_val = np.arange(len(total_val_loss))
+
+    sns.lineplot(x=x_train, y=total_train_loss, label='Training Loss')
+    sns.lineplot(x=x_test, y=total_test_loss, label='Testing Loss')
+    sns.lineplot(x=x_val, y=total_val_loss, label='Validation Loss')
+    plt.title("Loss after evey training epoch")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.xticks(np.arange(len(total_train_loss)))
+    plt.show()
