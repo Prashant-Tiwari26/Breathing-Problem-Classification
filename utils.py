@@ -237,6 +237,33 @@ def TrainLoopv2(
     return_best_model:bool=True,
     device:str='cpu'
 ):
+    """
+    Train a PyTorch model using the provided data loaders and monitor training progress.
+
+    Args:
+        model (torch.nn.Module): The PyTorch model to train.
+        optimizer (torch.optim.Optimizer): The optimizer for updating model parameters.
+        criterion (torch.nn.Module): The loss function to optimize.
+        train_dataloader (torch.utils.data.DataLoader): DataLoader for the training dataset.
+        val_dataloader (torch.utils.data.DataLoader): DataLoader for the validation dataset.
+        test_dataloader (torch.utils.data.DataLoader, optional): DataLoader for the test dataset (default: None).
+        num_epochs (int, optional): Number of training epochs (default: 20).
+        early_stopping_rounds (int, optional): Number of epochs to wait for improvement in validation loss
+            before early stopping (default: 5).
+        return_best_model (bool, optional): Whether to return the model with the best validation loss (default: True).
+        device (str, optional): Device to use for training ('cpu' or 'cuda') (default: 'cpu').
+
+    Returns:
+        None or torch.nn.Module: If return_best_model is True, returns the trained model with the best validation loss;
+        otherwise, returns None.
+
+    Note:
+        This function monitors training and validation loss and accuracy over epochs and can optionally
+        plot the loss and accuracy curves.
+
+    Example:
+        See the code example provided for usage.
+    """
     model.to(device)
     best_val_loss = float('inf')
     epochs_without_improvement = 0
