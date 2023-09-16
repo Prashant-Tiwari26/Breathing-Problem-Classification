@@ -37,27 +37,20 @@ warnings.filterwarnings("ignore")
 def finetune():
     weights = RegNet_Y_3_2GF_Weights.IMAGENET1K_V2
     model = regnet_y_3_2gf(weights=weights)
-    data = CustomDataset("Data/processed_metadata.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'])
 
-    train_size = int(0.7 * len(data))
-    val_size = int(0.1 * len(data))
-    test_size = len(data) - train_size - val_size
-
-    train_dataset, val_dataset, test_dataset = random_split(
-        data, [train_size, val_size, test_size]
-    )
+    train_dataset = CustomDataset("Data/Processed/train_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'])
+    val_dataset = CustomDataset("Data/Processed/val_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'])
 
     train_loader = DataLoader(train_dataset, 16, shuffle=True)
-    test_loader = DataLoader(test_dataset, 16, shuffle=True)
     val_loader = DataLoader(val_dataset, 16, shuffle=True)
 
     num_classes = 28
     in_features = model.fc.in_features
     model.fc = Linear(in_features, num_classes)
     criterion = BCEWithLogitsLoss()
-    optimizer = Adam(model.parameters(), lr=0.01)
+    optimizer = Adam(model.parameters(), lr=0.005)
 
-    TrainLoop(model, optimizer, criterion, train_loader, test_loader, val_loader, device='cuda')
+    TrainLoop(model, optimizer, criterion, train_loader, val_loader, num_epochs=50, early_stopping_rounds=10, device='cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 
