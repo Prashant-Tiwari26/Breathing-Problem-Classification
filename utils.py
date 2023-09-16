@@ -8,12 +8,26 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score
-from torchvision.transforms import Compose, ToTensor, CenterCrop, Normalize, Resize
+from torchvision.transforms import Compose, ToTensor, CenterCrop, Normalize, Resize, InterpolationMode
 
-transform = Compose([
+RegNet_transform = Compose([
     ToTensor(),
     Resize((232,232)),
     CenterCrop((224,224)),
+    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+EfficientNet_transform = Compose([
+    ToTensor(),
+    Resize((384,384)),
+    CenterCrop((384,384)),
+    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+SwinV2_transform = Compose([
+    ToTensor(),
+    Resize((260,260)),
+    CenterCrop((256,256)),
     Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
@@ -47,7 +61,7 @@ class CustomDataset(Dataset):
     This class allows you to create a custom dataset for loading image data and labels from a CSV file
     and applying optional image transformations during data loading.
     """
-    def __init__(self,csv_file, img_dir, filename_column, label_column, transform=transform) -> None:
+    def __init__(self,csv_file, img_dir, filename_column, label_column, transform) -> None:
         super().__init__()
         self.img_labels = pd.read_csv(csv_file)
         self.img_labels.drop(['Unnamed: 0'], axis=1, inplace=True)
