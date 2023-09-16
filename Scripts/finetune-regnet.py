@@ -29,7 +29,7 @@ from torchvision.models.regnet import regnet_y_3_2gf, RegNet_Y_3_2GF_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import CustomDataset, TrainLoop
+from utils import CustomDataset, TrainLoopv2
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -50,7 +50,7 @@ def finetune():
     criterion = BCEWithLogitsLoss()
     optimizer = Adam(model.parameters(), lr=0.005)
 
-    TrainLoop(model, optimizer, criterion, train_loader, val_loader, num_epochs=50, early_stopping_rounds=10, device='cuda')
+    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, num_epochs=100, early_stopping_rounds=20, device='cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 
