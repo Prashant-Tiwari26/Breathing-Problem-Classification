@@ -29,7 +29,7 @@ from torchvision.models import swin_v2_t, Swin_V2_T_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import CustomDataset, TrainLoopv2, SwinV2_transform
+from utils import CustomDataset, TrainLoop, SwinV2_transform
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -50,7 +50,7 @@ def finetune():
     criterion = BCEWithLogitsLoss()
     optimizer = Adam(model.parameters(), lr=0.005)
 
-    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, device='cuda', num_epochs=100, early_stopping_rounds=20)
+    TrainLoop(model, optimizer, criterion, train_loader, val_loader, device='cuda', num_epochs=100, early_stopping_rounds=20)
 
     model_path = 'Models/FinetunedSwinV2.pth'
 
