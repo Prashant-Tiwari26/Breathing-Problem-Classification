@@ -53,7 +53,7 @@ def finetune():
     )
 
     criterion = BCEWithLogitsLoss()
-    optimizer = Adam(model.parameters(), lr=0.005)
+    optimizer = Adam(model.parameters(), lr=0.001)
 
     TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, device='cuda', num_epochs=100, early_stopping_rounds=20)
 
