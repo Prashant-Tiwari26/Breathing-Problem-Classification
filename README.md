@@ -34,13 +34,13 @@ There are 3 models that have been initially finetuned to work directly on the im
 **Before**: (classifier): Sequential(<br>
     (0): Dropout(p=0.2, inplace=False)<br>
     (1): ReLU()<br>
-    (2): Linear(in_features=1280, out_features=28, bias=True)<br>
+    (2): Linear(in_features=1280, out_features=1000, bias=True)<br>
 )
 
 **After**: (classifier): Sequential(<br>
     (0): Dropout(p=0.2, inplace=False)<br>
     (1): ReLU()<br>
-    (2): Linear(in_features=1280, out_features=1000, bias=True)<br>
+    (2): Linear(in_features=1280, out_features=28, bias=True)<br>
 )
 
 ### Swinv2
@@ -112,6 +112,12 @@ The models are trained using **Adam Optimizer** with learning rate set at 0.005 
 ## Usage
 
 ## Dependencies
+
+To activate virtual environment run the follwing command in terminal:
+
+```
+.\.venv\Scripts\Activate.ps1
+```
 
 All the dependencies in the project are mentioned in __requirements.txt__ file. To install all dependencies run the following command in your terminal:<br>
 ```
