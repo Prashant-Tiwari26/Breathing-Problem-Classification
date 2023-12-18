@@ -113,12 +113,6 @@ The models are trained using **Adam Optimizer** with learning rate set at 0.005 
 
 ## Dependencies
 
-To activate virtual environment run the follwing command in terminal:
-
-```
-.\.venv\Scripts\Activate.ps1
-```
-
 All the dependencies in the project are mentioned in __requirements.txt__ file. To install all dependencies run the following command in your terminal:<br>
 ```
 pip install -r requirements.txt
