@@ -9,26 +9,39 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score
 from torchvision.transforms import Compose, ToTensor, CenterCrop, Normalize, Resize, InterpolationMode
+from torchvision.transforms import v2
 
 RegNet_transform = Compose([
-    ToTensor(),
-    Resize((232,232)),
-    CenterCrop((224,224)),
-    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True),
+    v2.RandomHorizontalFlip(0.55),
+    v2.RandomVerticalFlip(0.55),
+    v2.RandomRotation(45, InterpolationMode.BILINEAR),
+    v2.Resize((232,232), interpolation=InterpolationMode.BICUBIC, antialias=True),
+    v2.CenterCrop((224,224)),
+    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 EfficientNet_transform = Compose([
-    ToTensor(),
-    Resize((384,384)),
-    CenterCrop((384,384)),
-    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True),
+    v2.RandomHorizontalFlip(0.55),
+    v2.RandomVerticalFlip(0.55),
+    v2.RandomRotation(45, InterpolationMode.BILINEAR),
+    v2.Resize((384,384), interpolation=InterpolationMode.BICUBIC, antialias=True),
+    v2.CenterCrop((384,384)),
+    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 SwinV2_transform = Compose([
-    ToTensor(),
-    Resize((260,260)),
-    CenterCrop((256,256)),
-    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True),
+    v2.RandomHorizontalFlip(0.55),
+    v2.RandomVerticalFlip(0.55),
+    v2.RandomRotation(45, InterpolationMode.BILINEAR),
+    v2.Resize((260,260), interpolation=InterpolationMode.BICUBIC, antialias=True),
+    v2.CenterCrop((256,256)),
+    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 class CustomDataset(Dataset):
