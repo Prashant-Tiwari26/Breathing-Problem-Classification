@@ -21,15 +21,16 @@ The script performs the following steps:
 Usage:
     Run this script to start the fine-tuning process.
 """
+import pandas as pd
 from torch import save
-from torch.optim import Adam
+from torch.optim import AdamW
 from torch.nn import Linear, BCEWithLogitsLoss
-from torch.utils.data import random_split, DataLoader
+from torch.utils.data import DataLoader
 from torchvision.models.regnet import regnet_y_3_2gf, RegNet_Y_3_2GF_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import CustomDataset, TrainLoopv2, RegNet_transform
+from utils import ImagesOnlyDataset, TrainLoopv2, RegNet_transform
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -38,9 +39,14 @@ def finetune():
     weights = RegNet_Y_3_2GF_Weights.IMAGENET1K_V2
     model = regnet_y_3_2gf(weights=weights)
 
-    train_dataset = CustomDataset("Data/Processed/train_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'], transform=RegNet_transform)
-    val_dataset = CustomDataset("Data/Processed/val_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'], transform=RegNet_transform)
+    train_targets = pd.read_csv("Data/Processed/train_targets.csv")
+    train_features = pd.read_csv("Data/Processed/train_features.csv")
+    val_targets = pd.read_csv("Data/Processed/val_targets.csv")
+    val_features = pd.read_csv("Data/Processed/val_features.csv")
 
+    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", RegNet_transform)
+    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", RegNet_transform)
+    
     train_loader = DataLoader(train_dataset, 16, shuffle=True)
     val_loader = DataLoader(val_dataset, 16, shuffle=True)
 
@@ -48,9 +54,9 @@ def finetune():
     in_features = model.fc.in_features
     model.fc = Linear(in_features, num_classes)
     criterion = BCEWithLogitsLoss()
-    optimizer = Adam(model.parameters(), lr=0.005)
+    optimizer = AdamW(model.parameters(), lr=0.001)
 
-    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, num_epochs=100, early_stopping_rounds=20, device='cuda')
+    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, num_epochs=100, early_stopping_rounds=15, device='cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 
