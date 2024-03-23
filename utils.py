@@ -8,11 +8,10 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from sklearn.metrics import accuracy_score
-from torchvision.transforms import Compose, ToTensor, CenterCrop, Normalize, Resize, InterpolationMode
-from torchvision.transforms import v2
+from torchvision.transforms import v2, InterpolationMode
+from torchvision.io import read_image
 
-RegNet_transform = Compose([
-    v2.ToImage(),
+RegNet_transform = v2.Compose([
     v2.ToDtype(torch.float32, scale=True),
     v2.RandomHorizontalFlip(0.55),
     v2.RandomVerticalFlip(0.55),
@@ -22,8 +21,7 @@ RegNet_transform = Compose([
     v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-EfficientNet_transform = Compose([
-    v2.ToImage(),
+EfficientNet_transform = v2.Compose([
     v2.ToDtype(torch.float32, scale=True),
     v2.RandomHorizontalFlip(0.55),
     v2.RandomVerticalFlip(0.55),
@@ -33,8 +31,7 @@ EfficientNet_transform = Compose([
     v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-SwinV2_transform = Compose([
-    v2.ToImage(),
+SwinV2_transform = v2.Compose([
     v2.ToDtype(torch.float32, scale=True),
     v2.RandomHorizontalFlip(0.55),
     v2.RandomVerticalFlip(0.55),
@@ -43,75 +40,66 @@ SwinV2_transform = Compose([
     v2.CenterCrop((256,256)),
     v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-class CustomDataset(Dataset):
+class ImagesOnlyDataset(Dataset):
     """
-    CustomDataset_CSVlabels is a custom PyTorch dataset class for loading image data and labels
-    from a CSV file.
+    Custom PyTorch Dataset class for loading images with associated labels.
 
     Args:
-        csv_file (str): The path to the CSV file containing image file names and corresponding labels.
-        img_dir (str): The directory where the image files are located.
-        filename_column (str): The name of the CSV column containing image file names.
-        label_column (str): The name of the CSV column containing image labels.
-        transform (callable, optional): A torchvision.transforms.Compose object that applies image
-            transformations (default: None).
+        filenames (pd.DataFrame): DataFrame containing filenames.
+        targets (pd.DataFrame): DataFrame containing target labels.
+        img_dir (str): Directory containing the images.
+        transform (v2._container.Compose): Composition of image transformations.
 
     Attributes:
-        img_labels (DataFrame): A pandas DataFrame containing image file names and labels.
-        img_dir (str): The directory where the image files are located.
-        transform (callable): A torchvision.transforms.Compose object to apply transformations to images.
-
-    Example:
-        dataset = CustomDataset_CSVlabels(
-            csv_file='labels.csv',
-            img_dir='images/',
-            filename_column='filename',
-            label_column='label',
-            transform=transform
-        )
-
-    This class allows you to create a custom dataset for loading image data and labels from a CSV file
-    and applying optional image transformations during data loading.
+        img_labels (pd.DataFrame): DataFrame containing target labels.
+        filenames (pd.DataFrame): DataFrame containing filenames.
+        img_dir (str): Directory containing the images.
+        transform (v2._container.Compose): Composition of image transformations.
     """
-    def __init__(self,csv_file, img_dir, filename_column, label_column, transform) -> None:
+
+    def __init__(self, filenames: pd.DataFrame, targets: pd.DataFrame, img_dir: str, transform: v2._container.Compose) -> None:
+        """
+        Initializes ImagesOnlyDataset with given filenames, targets, image directory, and transformation.
+
+        Args:
+            filenames (pd.DataFrame): DataFrame containing filenames.
+            targets (pd.DataFrame): DataFrame containing target labels.
+            img_dir (str): Directory containing the images.
+            transform (v2._container.Compose): Composition of image transformations.
+        """
         super().__init__()
-        self.img_labels = pd.read_csv(csv_file)
-        self.img_labels.drop(['Unnamed: 0'], axis=1, inplace=True)
+        self.img_labels = targets
+        self.filenames = filenames
         self.img_dir = img_dir
         self.transform = transform
-        self.filename = filename_column
-        self.label = label_column
 
     def __len__(self):
         """
-        Get the number of samples in the dataset.
+        Returns the total number of samples in the dataset.
 
         Returns:
-            int: The number of samples in the dataset.
+            int: Number of samples in the dataset.
         """
         return len(self.img_labels)
     
     def __getitem__(self, index):
         """
-        Get a sample from the dataset by index.
+        Retrieves an image and its associated label from the dataset.
 
         Args:
-            index (int): The index of the sample to retrieve.
+            index (int): Index to retrieve the sample.
 
         Returns:
-            tuple: A tuple containing the transformed image and its corresponding label.
+            tuple: A tuple containing the transformed image and its label.
         """
-        img_path = os.path.join(self.img_dir, self.img_labels.loc[index,self.filename])
-        image = Image.open(img_path)
-        image = image.convert("RGB")
-        y_label = torch.tensor(self.img_labels.loc[index, self.label])
+        img_path = os.path.join(self.img_dir, self.filenames.iloc[index])
+        image = read_image(img_path)
+        y_label = torch.tensor(self.img_labels.iloc[index])
 
-        if self.transform:
-            image = self.transform(image)
+        image = self.transform(image)
 
         return (image, y_label)
-    
+
 def TrainLoop(
     model,
     optimizer:torch.optim.Optimizer,
