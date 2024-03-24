@@ -25,12 +25,13 @@ import pandas as pd
 from torch import save
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import MultiplicativeLR
 from torch.nn import Linear, BCEWithLogitsLoss
 from torchvision.models import swin_v2_t, Swin_V2_T_Weights
 
 import sys
-sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import ImagesOnlyDataset, TrainLoop, SwinV2_transform
+sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
+from utils import ImagesOnlyDataset, train_loop, SwinV2_transform
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -47,16 +48,21 @@ def finetune():
     train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", SwinV2_transform)
     val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", SwinV2_transform)
     
-    train_loader = DataLoader(train_dataset, 16, shuffle=True)
-    val_loader = DataLoader(val_dataset, 16, shuffle=True)
+    train_loader = DataLoader(train_dataset, 32, shuffle=True)
+    val_loader = DataLoader(val_dataset, 32, shuffle=True)
 
-    num_classes = 28
+    num_classes = 22
     model.head = Linear(768, num_classes)
 
+    def lr_lambda(epoch):
+        if epoch <= 20:
+            return 0.9
+        return 1
     criterion = BCEWithLogitsLoss()
     optimizer = AdamW(model.parameters(), lr=0.001)
+    scheduler = MultiplicativeLR(optimizer, lr_lambda)
 
-    TrainLoop(model, optimizer, criterion, train_loader, val_loader, device='cuda', num_epochs=100, early_stopping_rounds=15)
+    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "Data/Performance/SwinV2.png", 100, 5, 15, True, 'cuda')
 
     model_path = 'Models/FinetunedSwinV2.pth'
 

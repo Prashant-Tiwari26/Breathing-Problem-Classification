@@ -24,13 +24,14 @@ Usage:
 import pandas as pd
 from torch import save
 from torch.optim import AdamW
-from torch.nn import Linear, BCEWithLogitsLoss
 from torch.utils.data import DataLoader
+from torch.nn import Linear, BCEWithLogitsLoss
+from torch.optim.lr_scheduler import LambdaLR
 from torchvision.models.regnet import regnet_y_3_2gf, RegNet_Y_3_2GF_Weights
 
 import sys
-sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import ImagesOnlyDataset, TrainLoopv2, RegNet_transform
+sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
+from utils import ImagesOnlyDataset, train_loop, RegNet_transform
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -47,16 +48,21 @@ def finetune():
     train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", RegNet_transform)
     val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", RegNet_transform)
     
-    train_loader = DataLoader(train_dataset, 16, shuffle=True)
-    val_loader = DataLoader(val_dataset, 16, shuffle=True)
+    train_loader = DataLoader(train_dataset, 32, shuffle=True)
+    val_loader = DataLoader(val_dataset, 32, shuffle=True)
 
-    num_classes = 28
+    num_classes = 22
     in_features = model.fc.in_features
     model.fc = Linear(in_features, num_classes)
+    def lr_lambda(epoch):
+        if epoch <= 20:
+            return 0.9 ** epoch
+        return 0.9 ** 20
     criterion = BCEWithLogitsLoss()
     optimizer = AdamW(model.parameters(), lr=0.001)
+    scheduler = LambdaLR(optimizer, lr_lambda)
 
-    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, num_epochs=100, early_stopping_rounds=15, device='cuda')
+    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "performance.png", 100, 5, 15, True, 'cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 
