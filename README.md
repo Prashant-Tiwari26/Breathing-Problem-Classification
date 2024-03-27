@@ -2,7 +2,7 @@
 
 ## Overview
 
-In this Project, we use CNN on X-rays and CT scan images of various patients from across the world [Cohen, Joseph Paul, et al. "Covid-19 image data collection: Prospective predictions are the future." arXiv preprint arXiv:2006.11988 (2020).](https://arxiv.org/pdf/2003.11597.pdf) to predict various breathing diseases they. A total of 28 breathing issues are there including. We have treated the problem as a multilabel classification problem here as a single patient often have more than one disease.
+In this Project, we use CNN on X-rays and CT scan images of various patients from across the world [Cohen, Joseph Paul, et al. "Covid-19 image data collection: Prospective predictions are the future." arXiv preprint arXiv:2006.11988 (2020).](https://arxiv.org/pdf/2003.11597.pdf) to predict various breathing diseases they. A total of 22 breathing issues are there including. We have treated the problem as a multilabel classification problem here as a single patient often have more than one disease.
 
 ## Table of Contents
 + [Overview](#overview)
@@ -21,13 +21,13 @@ The following dataset has been used for this project : [Cohen, Joseph Paul, et a
 
 ## Model Architecture
 
-There are 3 models that have been initially finetuned to work directly on the images to detect diseases: `regnet_y_3_2gf`, `efficientnet_v2_s` and `swin_v2_t`. The final classification layer was changed from 1000 neurons to 28 for our task. Their architecture of their final layer after the change is as follows:
+There are 3 models that have been initially finetuned to work directly on the images to detect diseases: `regnet_y_3_2gf`, `efficientnet_v2_s` and `swin_v2_t`. The final classification layer was changed from 1000 neurons to 22 for our task. Their architecture of their final layer after the change is as follows:
 
 ### RegNet
 
 **Before**: (fc): Linear(in_features=1512, out_features=1000, bias=True)
 
-**After**: (fc): Linear(in_features=1512, out_features=28, bias=True)
+**After**: (fc): Linear(in_features=1512, out_features=22, bias=True)
 
 ### EfficientNet
 
@@ -40,14 +40,14 @@ There are 3 models that have been initially finetuned to work directly on the im
 **After**: (classifier): Sequential(<br>
     (0): Dropout(p=0.2, inplace=False)<br>
     (1): ReLU()<br>
-    (2): Linear(in_features=1280, out_features=28, bias=True)<br>
+    (2): Linear(in_features=1280, out_features=22, bias=True)<br>
 )
 
 ### Swinv2
 
 **Before**: (head): Linear(in_features=768, out_features=1000, bias=True)
 
-**After**: (head): Linear(in_features=768, out_features=28, bias=True)
+**After**: (head): Linear(in_features=768, out_features=22, bias=True)
 
 ## Preprocessing
 
@@ -105,9 +105,31 @@ Afterwards this multilabel data was used to train the models.
 
 The scripts for fine-tuning the models is present in **Scripts** folder. The training loop as well as custom dataset class are present in the `utils.py` file.<br>
 
-The models are trained using **Adam Optimizer** with learning rate set at 0.005 for the first three initial models that are trained only on images for a maximum for **100 epochs** with an early stopping rule if validation loss does not improve after **20 epochs**.
+The models are trained using **AdamW Optimizer** with learning rate set at 0.005 for the first three initial models that are trained only on images for a maximum for **100 epochs** with an early stopping rule if validation loss does not improve after **15 epochs**.
 
 ## Evaluation
+
+### Training time metrics
+
+#### RegNet_2gf
+
+![Alt text](Data/Performance/RegNet.png)
+
+#### RegNet_8gf
+
+![Alt text](Data/Performance/RegNetY.png)
+
+#### EfficientNet
+
+![Alt text](Data/Performance/EfficientNet.png)
+
+#### SwinV2
+
+![Alt text](Data/Performance/SwinV2.png)
+
+### Test time evaluation
+
+
 
 ## Usage
 
