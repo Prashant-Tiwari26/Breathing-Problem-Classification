@@ -31,7 +31,7 @@ from torchvision.models import swin_v2_t, Swin_V2_T_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
-from utils import ImagesOnlyDataset, train_loop, SwinV2_transform
+from utils import ImagesOnlyDataset, train_loop
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -45,8 +45,8 @@ def finetune():
     val_targets = pd.read_csv("Data/Processed/val_targets.csv")
     val_features = pd.read_csv("Data/Processed/val_features.csv")
 
-    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", SwinV2_transform)
-    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", SwinV2_transform)
+    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", 260, 256)
+    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", 260, 256, False)
     
     train_loader = DataLoader(train_dataset, 32, shuffle=True)
     val_loader = DataLoader(val_dataset, 32, shuffle=True)

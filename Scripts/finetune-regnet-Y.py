@@ -31,7 +31,7 @@ from torchvision.models.regnet import regnet_y_8gf, RegNet_Y_8GF_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
-from utils import ImagesOnlyDataset, train_loop, RegNet_transform
+from utils import ImagesOnlyDataset, train_loop
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -45,8 +45,8 @@ def finetune():
     val_targets = pd.read_csv("Data/Processed/val_targets.csv")
     val_features = pd.read_csv("Data/Processed/val_features.csv")
 
-    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", RegNet_transform)
-    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", RegNet_transform)
+    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", 232, 224)
+    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", 232, 224, False)
     
     train_loader = DataLoader(train_dataset, 16, shuffle=True)
     val_loader = DataLoader(val_dataset, 16, shuffle=True)
