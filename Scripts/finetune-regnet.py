@@ -62,7 +62,7 @@ def finetune():
     optimizer = AdamW(model.parameters(), lr=0.001)
     scheduler = LambdaLR(optimizer, lr_lambda)
 
-    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "performance.png", 100, 5, 15, True, 'cuda')
+    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "Data/Performance/RegNet.png", 100, 5, 15, True, 'cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 

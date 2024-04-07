@@ -48,8 +48,8 @@ def finetune():
     train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", 232, 224)
     val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", 232, 224, False)
     
-    train_loader = DataLoader(train_dataset, 16, shuffle=True)
-    val_loader = DataLoader(val_dataset, 16, shuffle=True)
+    train_loader = DataLoader(train_dataset, 32, shuffle=True)
+    val_loader = DataLoader(val_dataset, 32, shuffle=True)
 
     num_classes = 22
     in_features = model.fc.in_features

@@ -245,7 +245,7 @@ def train_loop(
     plt.subplots_adjust(wspace=0.3)
     ax1.grid(True, linestyle='--')  
     ax2.grid(False)
-    plt.xticks(range(len(total_train_loss)))
+    plt.xticks(range(len(total_train_loss)), rotation=45)
     plt.savefig(fig_save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
