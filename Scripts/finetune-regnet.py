@@ -26,7 +26,7 @@ from torch import save
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torch.nn import Linear, BCEWithLogitsLoss
-from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.lr_scheduler import MultiplicativeLR
 from torchvision.models.regnet import regnet_y_3_2gf, RegNet_Y_3_2GF_Weights
 
 import sys
@@ -56,11 +56,11 @@ def finetune():
     model.fc = Linear(in_features, num_classes)
     def lr_lambda(epoch):
         if epoch <= 20:
-            return 0.9 ** epoch
-        return 0.9 ** 20
+            return 0.9
+        return 1
     criterion = BCEWithLogitsLoss()
     optimizer = AdamW(model.parameters(), lr=0.001)
-    scheduler = LambdaLR(optimizer, lr_lambda)
+    scheduler = MultiplicativeLR(optimizer, lr_lambda)
 
     train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "Data/Performance/RegNet.png", 100, 5, 15, True, 'cuda')
 
