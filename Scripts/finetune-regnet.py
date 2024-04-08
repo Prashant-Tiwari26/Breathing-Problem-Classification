@@ -26,12 +26,12 @@ from torch import save
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torch.nn import Linear, BCEWithLogitsLoss
-from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.lr_scheduler import MultiplicativeLR
 from torchvision.models.regnet import regnet_y_3_2gf, RegNet_Y_3_2GF_Weights
 
 import sys
 sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
-from utils import ImagesOnlyDataset, train_loop, RegNet_transform
+from utils import ImagesOnlyDataset, train_loop
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -45,8 +45,8 @@ def finetune():
     val_targets = pd.read_csv("Data/Processed/val_targets.csv")
     val_features = pd.read_csv("Data/Processed/val_features.csv")
 
-    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", RegNet_transform)
-    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", RegNet_transform)
+    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", 232, 224)
+    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", 232, 224, False)
     
     train_loader = DataLoader(train_dataset, 32, shuffle=True)
     val_loader = DataLoader(val_dataset, 32, shuffle=True)
@@ -56,13 +56,13 @@ def finetune():
     model.fc = Linear(in_features, num_classes)
     def lr_lambda(epoch):
         if epoch <= 20:
-            return 0.9 ** epoch
-        return 0.9 ** 20
+            return 0.9
+        return 1
     criterion = BCEWithLogitsLoss()
     optimizer = AdamW(model.parameters(), lr=0.001)
-    scheduler = LambdaLR(optimizer, lr_lambda)
+    scheduler = MultiplicativeLR(optimizer, lr_lambda)
 
-    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "performance.png", 100, 5, 15, True, 'cuda')
+    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "Data/Performance/RegNet.png", 100, 5, 15, True, 'cuda')
 
     model_path = 'Models/FinetunedRegNet.pth'
 
