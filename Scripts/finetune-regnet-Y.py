@@ -29,9 +29,11 @@ from torch.nn import Linear, BCEWithLogitsLoss
 from torch.optim.lr_scheduler import MultiplicativeLR
 from torchvision.models.regnet import regnet_y_8gf, RegNet_Y_8GF_Weights
 
+import os
 import sys
-sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
-from utils import ImagesOnlyDataset, train_loop
+sys.path.append(os.getcwd())
+from utils.data import ImagesOnlyDataset
+from utils.train import train_loop
 
 import warnings
 warnings.filterwarnings("ignore")

@@ -29,9 +29,11 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import MultiplicativeLR
 from torchvision.models.efficientnet import efficientnet_v2_s, EfficientNet_V2_S_Weights
 
+import os
 import sys
-sys.path.append("C:\College\Projects\Breathing-Problem-Classification")
-from utils import ImagesOnlyDataset, train_loop
+sys.path.append(os.getcwd())
+from utils.data import ImagesOnlyDataset
+from utils.train import train_loop
 
 import warnings
 warnings.filterwarnings("ignore")
