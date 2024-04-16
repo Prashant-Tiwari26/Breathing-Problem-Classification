@@ -96,3 +96,34 @@ class ImagesOnlyDataset(Dataset):
         image = self.transform(image)
 
         return (image, y_label)
+    
+class MultimodalDataset(ImagesOnlyDataset):
+    def __init__(self, data: pd.DataFrame, file_column: str, targets: pd.DataFrame, img_dir: str, resize: int, crop: int, train: bool = True) -> None:
+        """
+        Initializes a multimodal dataset for training or evaluation.
+
+        Args:
+            data (pd.DataFrame): The DataFrame containing file information and metadata.
+            file_column (str): The name of the column in 'data' containing file paths.
+            targets (pd.DataFrame): The DataFrame containing target labels.
+            img_dir (str): The directory containing the image files.
+            resize (int): The size to which images should be resized.
+            crop (int): The size of the square crop to apply to images.
+            train (bool, optional): Whether the dataset is used for training. Defaults to True.
+        """
+        super().__init__(data[file_column], targets, img_dir, resize, crop, train)
+        self.metadata = data.drop([file_column], axis=1)
+
+    def __getitem__(self, index):
+        """
+        Retrieves the item at the specified index from the dataset.
+
+        Args:
+            index (int): The index of the item to retrieve.
+
+        Returns:
+            tuple: A tuple containing the image, metadata vectors, and label.
+        """
+        img, label = super().__getitem__(index)
+        vectors = torch.tensor(self.metadata.iloc[index], dtype=torch.float32)
+        return (img, vectors, label)
