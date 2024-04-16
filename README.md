@@ -125,7 +125,7 @@ The models are trained using **AdamW Optimizer** with learning rate set at 0.005
 
 #### SwinV2
 
-![Alt text](Data/Performance/SwinV2.png)
+![Alt text](Data/Performance/swinV2.png)
 
 ### Test time evaluation
 
