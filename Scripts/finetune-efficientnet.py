@@ -21,15 +21,19 @@ The script performs the following steps:
 Usage:
     Run this script to start the fine-tuning process.
 """
+import pandas as pd
 from torch import save
-from torch.optim import Adam
+from torch.optim import AdamW
 from torch.nn import Linear, BCEWithLogitsLoss, Sequential, ReLU, Dropout
-from torch.utils.data import random_split, DataLoader
+from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import MultiplicativeLR
 from torchvision.models.efficientnet import efficientnet_v2_s, EfficientNet_V2_S_Weights
 
+import os
 import sys
-sys.path.append("C:\College\Projects\Breathing Problem Classification")
-from utils import CustomDataset, TrainLoopv2, EfficientNet_transform
+sys.path.append(os.getcwd())
+from utils.data import ImagesOnlyDataset
+from utils.train import train_loop
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -38,13 +42,18 @@ def finetune():
     weights = EfficientNet_V2_S_Weights.IMAGENET1K_V1
     model = efficientnet_v2_s(weights=weights)
 
-    train_dataset = CustomDataset("Data/Processed/train_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'], transform=EfficientNet_transform)
-    val_dataset = CustomDataset("Data/Processed/val_set.csv", "Data/images", "filename", ['Aspergillosis', 'Aspiration', 'Bacterial', 'COVID-19', 'Chlamydophila', 'E.Coli', 'Fungal', 'H1N1', 'Herpes ', 'Influenza', 'Klebsiella', 'Legionella', 'Lipoid', 'MERS-CoV', 'MRSA', 'Mycoplasma', 'No Finding', 'Nocardia', 'Pneumocystis', 'Pneumonia', 'SARS', 'Staphylococcus', 'Streptococcus', 'Tuberculosis', 'Unknown', 'Varicella', 'Viral', 'todo'], transform=EfficientNet_transform)
+    train_targets = pd.read_csv("Data/Processed/train_targets.csv")
+    train_features = pd.read_csv("Data/Processed/train_features.csv")
+    val_targets = pd.read_csv("Data/Processed/val_targets.csv")
+    val_features = pd.read_csv("Data/Processed/val_features.csv")
 
+    train_dataset = ImagesOnlyDataset(train_features['filename'], train_targets, "Data/images", 384, 384)
+    val_dataset = ImagesOnlyDataset(val_features['filename'], val_targets, "Data/images", 384, 384, False)
+    
     train_loader = DataLoader(train_dataset, 16, shuffle=True)
     val_loader = DataLoader(val_dataset, 16, shuffle=True)
 
-    num_classes = 28
+    num_classes = 22
     
     model.classifier = Sequential(
         Dropout(p=0.2),
@@ -52,10 +61,15 @@ def finetune():
         Linear(in_features=1280, out_features=num_classes)
     )
 
+    def lr_lambda(epoch):
+        if epoch <= 20:
+            return 0.9
+        return 1
     criterion = BCEWithLogitsLoss()
-    optimizer = Adam(model.parameters(), lr=0.001)
+    optimizer = AdamW(model.parameters(), lr=0.001)
+    scheduler = MultiplicativeLR(optimizer, lr_lambda)
 
-    TrainLoopv2(model, optimizer, criterion, train_loader, val_loader, device='cuda', num_epochs=100, early_stopping_rounds=20)
+    train_loop(model, optimizer, criterion, train_loader, val_loader, scheduler, "Data/Performance/EfficientNet.png", 100, 5, 15, True, 'cuda')
 
     model_path = 'Models/FinetunedEfficientNet.pth'
 
